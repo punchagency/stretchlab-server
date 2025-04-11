@@ -4,7 +4,7 @@ import json
 import logging
 
 
-setup_logging("ai_analysis.log", logging.INFO)
+# setup_logging("ai_analysis.log", logging.INFO)
 
 
 # OpenAI configuration
