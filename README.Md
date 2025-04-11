@@ -10,7 +10,7 @@
 - **Environment**: Runs in a Python virtual environment (`venv`) for dependency management.
 
 ### Use Case
-This scraper targets websites related to Stretch Lab (clubready) to carry out some processes and get some data. It feeds this data into Airtable for downstream processing, such as generating quality scores, tracking client activity, checking flexologist schedules and note, status, first timers conversation and bookings, etc. within the `stretchlab-server` ecosystem.
+This scraper targets Stretch Lab's ClubReady account to carry out some processes and get some data. It feeds this data into Airtable for downstream processing, such as generating quality scores, tracking client activity, checking flexologist schedules and note, status, first timers conversation and bookings, etc. within the `stretchlab-server` ecosystem.
 
 ---
 
