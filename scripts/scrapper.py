@@ -2,7 +2,11 @@ from scrapegraphai.graphs import SmartScraperGraph
 from dotenv import load_dotenv
 import os
 from logging_config import setup_logging
-from aianalysis import extract_data_from_html, extract_notes_and_analyse
+from aianalysis import (
+    extract_data_from_html,
+    extract_notes_and_analyse,
+    extract_unlogged_booking_from_html,
+)
 from util.helper import load_json, save_json
 from datetime import datetime, date
 
@@ -29,9 +33,11 @@ PASSWORD = os.getenv("PASSWORD")
 INITIAL_URL = os.getenv("INITIAL_URL")
 TARGET_URL = os.getenv("TARGET_URL")
 
+os.makedirs("debug_images", exist_ok=True)
 # This is for caching data so the script does not repeat when something fails
 os.makedirs("cache", exist_ok=True)
 CACHE_FILE = "cache/ai_analysis_cache.json"
+REPORT_CACHE_FILE = "cache/ai_report_analysis_cache.json"
 CHECKPOINT_FILE = "cache/scraping_checkpoint.json"
 
 
@@ -40,16 +46,10 @@ def process_location(location_name: str) -> list:
 
     checkpoint = load_json(CHECKPOINT_FILE)
     today = str(date.today())
-
-    last_run_date = checkpoint.get("last_run_date")
-    if last_run_date != today:
-        print(f"New day detected ({today}), clearing checkpoint")
-        checkpoint = {"last_run_date": today, "completed": [], "results": {}}
-        save_json(CHECKPOINT_FILE, checkpoint)
-
     if location_name in checkpoint.get("completed", []):
         print(f"Skipping {location_name} - already processed")
         return checkpoint["results"].get(location_name, [])
+
     booking_data = []
 
     try:
@@ -65,9 +65,6 @@ def process_location(location_name: str) -> list:
             page.click("input[type='submit']")
             page.wait_for_url(TARGET_URL)
             print(f"Authenticated for {location_name}, URL: {page.url}")
-
-            page.screenshot(path=f"debug_images/thread_debug_{location_name}.png")
-
             page.wait_for_selector("select[name='stores']")
             page.select_option("select[name='stores']", label=location_name)
             page.click("input[name='Submit2']")
@@ -111,7 +108,7 @@ def process_location(location_name: str) -> list:
                                 infoDict["first_timer"] = "NO"
                                 print("not a first timer")
 
-                            max_attempts = 3
+                            max_attempts = 5
                             for attempt in range(max_attempts):
                                 child.click()
                                 print(
@@ -242,31 +239,52 @@ def process_location(location_name: str) -> list:
                                     )
                                     if attempt < max_attempts - 1:
                                         print("Retrying child...")
-                                        if "close_btn" in locals() and close_btn:
-                                            close_btn.click()
-                                            page.wait_for_selector(
-                                                ".fancybox-skin",
-                                                state="hidden",
-                                                timeout=10000,
-                                            )
+                                        try:
+                                            if "close_btn" in locals() and close_btn:
+                                                print("close button here")
+                                                page.screenshot(
+                                                    path=f"debug_images/{location_name}close_btn_view.png"
+                                                )
+
+                                                close_btn.click()
+                                                print("closed modal")
+                                                page.wait_for_selector(
+                                                    ".fancybox-skin",
+                                                    state="hidden",
+                                                    timeout=10000,
+                                                )
+                                            else:
+                                                try:
+                                                    page.wait_for_selector(
+                                                        ".fancybox-close",
+                                                        state="visible",
+                                                    ).click()
+                                                    page.wait_for_selector(
+                                                        ".fancybox-skin",
+                                                        state="hidden",
+                                                        timeout=10000,
+                                                    )
+                                                except:
+                                                    print("it passed")
+                                                    pass
+                                        except:
+                                            pass
                                         continue
                                     else:
                                         print(
                                             f"Failed after {max_attempts} attempts, skipping child"
                                         )
-                                        if "close_btn" in locals() and close_btn:
-                                            close_btn.click()
-                                            page.wait_for_selector(
-                                                ".fancybox-skin",
-                                                state="hidden",
-                                                timeout=10000,
-                                            )
+                                        try:
+                                            if "close_btn" in locals() and close_btn:
+                                                close_btn.click()
+                                                page.wait_for_selector(
+                                                    ".fancybox-skin",
+                                                    state="hidden",
+                                                    timeout=10000,
+                                                )
+                                        except:
+                                            pass
                                         break
-
-                    # Take a screenshot for debugging
-                    page.screenshot(
-                        path=f"debug_images/modal_debug_{location_name}.png"
-                    )
 
             close_modal = None
             try:
@@ -320,14 +338,12 @@ def process_location(location_name: str) -> list:
                     timeout=40000,
                 )
 
-                print("clicked today again")
-                print(booking_calender.query_selector("[onclick*='datepreset']"))
                 page.wait_for_function(
                     "element => element.isConnected && element.offsetParent !== null",
                     arg=booking_calender,
                 )
-                page.screenshot(path=f"debug_images/{location_name}_calendar_show.png")
                 print("calendar refreshed")
+
                 page.select_option("select[id='EventType']", value="5")
                 print("selected option")
                 submit_btn = page.query_selector("input[name='showReport-0']")
@@ -345,17 +361,29 @@ def process_location(location_name: str) -> list:
                     "#VisibleReportContentuxReportViewer_ctl13 table",
                     state="visible",
                 )
-                print("report data", report_data.inner_html())
-                new_page.close()
-
-                page.screenshot(
+                new_page.screenshot(
                     path=f"debug_images/{location_name}_booking_page_analysis.png"
                 )
+                result = extract_unlogged_booking_from_html(report_data.inner_html())
+
+                print(result)
+                ai_cache = load_json(REPORT_CACHE_FILE)
+                ai_cache["last_run_date"] = today
+                ai_cache.setdefault("results", {}).update({location_name: result})
+                save_json(REPORT_CACHE_FILE, ai_cache)
+
+                new_page.close()
+
+                # page.screenshot(
+                #     path=f"debug_images/{location_name}_booking_page_analysis.png"
+                # )
 
                 print("completed booking page")
                 close_modal = page.query_selector("#userpilot-next-button")
                 if close_modal:
                     close_modal.click()
+                    print("closing pilot content modal")
+
                     page.wait_for_selector("#userpilotContent", state="hidden")
 
             except Exception as e:
@@ -365,33 +393,46 @@ def process_location(location_name: str) -> list:
                     close_modal.click()
                     page.wait_for_selector("#userpilotContent", state="hidden")
 
+            checkpoint = load_json(CHECKPOINT_FILE)
             checkpoint["last_run_date"] = today
             checkpoint.setdefault("completed", []).append(location_name)
             checkpoint.setdefault("results", {}).update({location_name: booking_data})
             save_json(CHECKPOINT_FILE, checkpoint)
+            print("closing browser")
             browser.close()
-            return booking_data
+            # return booking_data
 
     except Exception as e:
-        print(f"Error processing location {location_name}: {e}")
+        print(f"(process location) failed for {location_name}: {e}")
         traceback.print_exc()
         if "browser" in locals():
+            print("browser is in local")
             browser.close()
-        return booking_data
+
+    return booking_data
 
 
-def get_page_scraping(authenticate=False, url=INITIAL_URL, max_workers=2):
+def get_page_scraping(
+    authenticate=False, url=INITIAL_URL, max_workers=2, max_retries=5
+):
 
     try:
         checkpoint = load_json(CHECKPOINT_FILE)
+        ai_cache = load_json(REPORT_CACHE_FILE)
         today = str(date.today())
 
-        # Clear checkpoint if it's a new day
         if checkpoint.get("last_run_date") != today:
             print(f"New day detected ({today}), clearing checkpoint")
             checkpoint = {"last_run_date": today, "completed": [], "results": {}}
             save_json(CHECKPOINT_FILE, checkpoint)
+
+        if ai_cache.get("last_run_date") != today:
+            print(f"New day detected ({today}), clearing ai cache")
+            checkpoint = {"last_run_date": today, "results": {}}
+            save_json(REPORT_CACHE_FILE, checkpoint)
+
         booking_data = []
+        locations = []
 
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True)
@@ -399,8 +440,6 @@ def get_page_scraping(authenticate=False, url=INITIAL_URL, max_workers=2):
             page = context.new_page()
             page.set_default_timeout(60000)
             page.goto(url)
-
-            redirect_url = url
 
             if authenticate:
                 # Perform authentication
@@ -422,43 +461,81 @@ def get_page_scraping(authenticate=False, url=INITIAL_URL, max_workers=2):
                 ]
                 browser.close()
 
-                # Process locations in parallel
-                with ThreadPoolExecutor(max_workers=max_workers) as executor:
-                    future_to_location = {
-                        executor.submit(
-                            process_location,
-                            name,
-                        ): name
-                        for name in locations
-                    }
+                def process_locations(locations_to_process):
+                    nonlocal booking_data
+                    retry_count = 0
+                    while locations_to_process and retry_count < max_retries:
+                        print(
+                            f"Retry attempt {retry_count + 1}/{max_retries} for {locations_to_process}"
+                        )
+                        failed_locations = []
 
-                    # Collect results as they complete
-                    for future in as_completed(future_to_location):
-                        location_name = future_to_location[future]
-                        try:
-                            location_data = future.result()
-                            booking_data.extend(location_data)
-                            print(f"Completed processing for {location_name}")
-                        except Exception as e:
-                            print(f"Error in parallel task for {location_name}: {e}")
-                            traceback.print_exc()
+                        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                            future_to_location = {
+                                executor.submit(process_location, name): name
+                                for name in locations_to_process
+                            }
+
+                            for future in as_completed(future_to_location):
+                                location_name = future_to_location[future]
+                                try:
+                                    location_data = future.result()
+                                    booking_data.extend(location_data)
+                                    print(f"Completed processing for {location_name}")
+                                except Exception as e:
+                                    print(
+                                        f"Error in parallel task for {location_name}: {e}"
+                                    )
+                                    traceback.print_exc()
+                                    failed_locations.append(location_name)
+
+                        locations_to_process = failed_locations
+                        retry_count += 1
+
+                        checkpoint = load_json(CHECKPOINT_FILE)
+                        completed = checkpoint.get("completed", [])
+                        print(f"Current completed locations: {completed}")
+
+                        locations_to_process = [
+                            loc for loc in locations_to_process if loc not in completed
+                        ]
+
+                    if locations_to_process:
+                        print(
+                            f"Failed to process after {max_retries} retries: {locations_to_process}"
+                        )
+
+                process_locations(locations)
 
             else:
                 print(
                     "No authentication required, implement alternative logic if needed"
                 )
-            final_results = checkpoint.get("results", {})
-        for data in booking_data:
-            loc = data["location"]
-            final_results.setdefault(loc, []).append(data)
 
-        checkpoint["results"] = final_results
-        checkpoint["last_run_date"] = today
-        save_json(
-            CHECKPOINT_FILE,
-            {"completed": checkpoint.get("completed", []), "results": final_results},
-        )
-        return list(final_results.values())
+        completed_checkpoint = load_json(CHECKPOINT_FILE)
+        final_completed = completed_checkpoint.get("completed", [])
+        print("got here and now", final_completed)
+
+        print(final_completed)
+
+        # for data in booking_data:
+        #     loc = data["location"]
+        #     final_results.setdefault(loc, []).append(data)
+        # completed_checkpoint = load_json(CHECKPOINT_FILE)
+        # completed = completed_checkpoint.get("completed", [])
+
+        # checkpoint["results"] = final_results
+        # checkpoint["last_run_date"] = today
+
+        # save_json(
+        #     CHECKPOINT_FILE,
+        #     {
+        #         "last_run_date": today,
+        #         "completed": completed_checkpoint.get("completed", []),
+        #         "results": final_results,
+        #     },
+        # )
+        # return list(final_results.values())
         # return booking_data
 
     except Exception as e:

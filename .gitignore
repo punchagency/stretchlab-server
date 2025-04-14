@@ -1,4 +1,10 @@
 .env
 venv
 /venv
+/cache
+cache
+/debug_images
+debug_images
 *.log
+*.png
+*.json

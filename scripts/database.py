@@ -13,17 +13,17 @@ load_dotenv()
 ACCESS_TOKEN = os.getenv("AIRTABLE_TOKEN")
 BASEID = os.getenv("AIRTABLE_BASE")
 TABLEID = os.getenv("AIRTABLE_TABLE")
-
+BOOKINGTABLEID = os.getenv("BOOKING_TABLE_ID")
 # Initializing api from airtable
 api = Api(ACCESS_TOKEN)
 
 
-# Initialize table
+# Initialize table, would correct to initialize diffrent tables
 table = api.table(BASEID, TABLEID)
 
-result = table.all()
+booking_table = api.table(BASEID, BOOKINGTABLEID)
 
-print(result)
+result = table.all()
 
 
 # Function for the saving of data
@@ -71,4 +71,27 @@ def save_booking_data(booking_data):
             )
 
 
-print("Finished adding rows to Airtable.")
+def save_unlogged_booking_data(unlogged_booking):
+    # scrap dtata entry blueprint
+    for entry in unlogged_booking:
+
+        fields = {
+            "Full Name": "",
+            "Booking Location": "",
+            "Booking ID": "",
+            "Booking Detail": "",
+            "Log Date": "",
+            "Session Mins": "",
+            "Booking With": "",
+            "Booking Date": "",
+        }
+        # Create a new record in Airtable
+
+        try:
+            new_record = booking_table.create(fields)
+            print(f"Created record for {entry[""]}: {new_record['id']}")
+        except Exception as e:
+            print(f"Error creating record for {entry[""]}: {str(e)}")
+
+
+print("Finished adding rows to Unlogged booking table.")

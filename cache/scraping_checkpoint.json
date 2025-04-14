@@ -1,5 +1,581 @@
 {
-  "last_run_date": "2025-04-11",
-  "completed": [],
-  "results": {}
+  "last_run_date": "2025-04-14",
+  "completed": [
+    "StretchLab Bellaire",
+    "StretchLab Bunker Hill",
+    "StretchLab Heights",
+    "StretchLab Pearland"
+  ],
+  "results": {
+    "StretchLab Bellaire": [
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bellaire"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bellaire"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bellaire"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bellaire"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bellaire"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bellaire"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bellaire"
+      },
+      {
+        "unpaid_booking": "YES",
+        "first_timer": "NO",
+        "location": "StretchLab Bellaire"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bellaire"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bellaire"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bellaire"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bellaire"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bellaire"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bellaire"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bellaire"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bellaire"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bellaire"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bellaire"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bellaire"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bellaire"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bellaire"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bellaire"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bellaire"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bellaire"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bellaire"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bellaire"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bellaire"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bellaire"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bellaire"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bellaire"
+      }
+    ],
+    "StretchLab Bunker Hill": [
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bunker Hill"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bunker Hill"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bunker Hill"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bunker Hill"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bunker Hill"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bunker Hill"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bunker Hill"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bunker Hill"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bunker Hill"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bunker Hill"
+      },
+      {
+        "first_timer": "YES",
+        "location": "StretchLab Bunker Hill"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bunker Hill"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bunker Hill"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bunker Hill"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bunker Hill"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bunker Hill"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bunker Hill"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bunker Hill"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bunker Hill"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bunker Hill"
+      },
+      {
+        "first_timer": "YES",
+        "location": "StretchLab Bunker Hill"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bunker Hill"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bunker Hill"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bunker Hill"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bunker Hill"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bunker Hill"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bunker Hill"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bunker Hill"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bunker Hill"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bunker Hill"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bunker Hill"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bunker Hill"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bunker Hill"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bunker Hill"
+      },
+      {
+        "first_timer": "YES",
+        "location": "StretchLab Bunker Hill"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bunker Hill"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bunker Hill"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Bunker Hill"
+      }
+    ],
+    "StretchLab Heights": [
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Heights"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Heights"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Heights"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Heights"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Heights"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Heights"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Heights"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Heights"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Heights"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Heights"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Heights"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Heights"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Heights"
+      },
+      {
+        "first_timer": "YES",
+        "location": "StretchLab Heights"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Heights"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Heights"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Heights"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Heights"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Heights"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Heights"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Heights"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Heights"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Heights"
+      },
+      {
+        "first_timer": "YES",
+        "location": "StretchLab Heights"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Heights"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Heights"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Heights"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Heights"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Heights"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Heights"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Heights"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Heights"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Heights"
+      }
+    ],
+    "StretchLab Pearland": [
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Pearland"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Pearland"
+      },
+      {
+        "first_timer": "YES",
+        "location": "StretchLab Pearland"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Pearland"
+      },
+      {
+        "unpaid_booking": "YES",
+        "first_timer": "YES",
+        "location": "StretchLab Pearland"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Pearland"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Pearland"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Pearland"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Pearland"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Pearland"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Pearland"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Pearland"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Pearland"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Pearland"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Pearland"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Pearland"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Pearland"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Pearland"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Pearland"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Pearland"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Pearland"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Pearland"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Pearland"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Pearland"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Pearland"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Pearland"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Pearland"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Pearland"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Pearland"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Pearland"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Pearland"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Pearland"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Pearland"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Pearland"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Pearland"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Pearland"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Pearland"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Pearland"
+      },
+      {
+        "first_timer": "NO",
+        "location": "StretchLab Pearland"
+      }
+    ]
+  }
 }

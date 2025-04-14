@@ -3,6 +3,8 @@ from dotenv import load_dotenv
 import os
 from logging_config import setup_logging
 from aianalysis import extract_data_from_html, extract_notes_and_analyse
+from util.helper import load_json, save_json
+from datetime import datetime, date
 
 # from database import save_booking_data
 import logging
@@ -27,8 +29,20 @@ INITIAL_URL = os.getenv("INITIAL_URL")
 TARGET_URL = os.getenv("TARGET_URL")
 
 
+os.makedirs("debug_images_test", exist_ok=True)
+# This is for caching data so the script does not repeat when something fails
+os.makedirs("cache_test", exist_ok=True)
+CACHE_FILE = "cache_test/ai_analysis_cache.json"
+CHECKPOINT_FILE = "cache_test/scraping_checkpoint.json"
+
+
 # A worker function to get the information needed for the website
 def process_location(location_name: str) -> list:
+    checkpoint = load_json(CHECKPOINT_FILE)
+    today = str(date.today())
+    if location_name in checkpoint.get("completed", []):
+        print(f"Skipping {location_name} - already processed")
+        return checkpoint["results"].get(location_name, [])
 
     booking_data = []
     try:
@@ -45,7 +59,7 @@ def process_location(location_name: str) -> list:
             page.wait_for_url(TARGET_URL)
             print(f"Authenticated for {location_name}, URL: {page.url}")
 
-            page.screenshot(path=f"debug_images/thread_debug_{location_name}.png")
+            page.screenshot(path=f"debug_images_test/thread_debug_{location_name}.png")
 
             page.wait_for_selector("select[name='stores']")
             page.select_option("select[name='stores']", label=location_name)
@@ -67,150 +81,158 @@ def process_location(location_name: str) -> list:
                 ".cr-container-full"
             )
             if len(flexologist_work_day) > 0:
-                container = flexologist_work_day[0]
-                children = container.query_selector_all("[onclick*='selectbooking']")
-                if len(children) > 0:
-                    child = children[0]
-                    infoDict = {}
-                    first_timer = child.query_selector("[title='first time visitor']")
-                    unpaid_booking = child.query_selector(
-                        "[title='This booking is unpaid']"
+                for container in flexologist_work_day:
+                    children = container.query_selector_all(
+                        "[onclick*='selectbooking']"
                     )
-                    if unpaid_booking:
-                        infoDict["unpaid_booking"] = "YES"
-                        print("Unpaid booking")
-                    if first_timer:
-                        infoDict["first_timer"] = "YES"
-                        print("first timer")
-                    else:
-                        infoDict["first_timer"] = "NO"
-                        print("not a first timer")
-                    child.click()
-                    print("Clicked booking child")
-
-                    try:
-                        modal_details = page.wait_for_selector(
-                            ".fancybox-skin", state="visible"
-                        )
-                        modal_type = None
-                        if modal_details:
-                            close_btn = None
-                            modal_type = modal_details.query_selector(
-                                'table[width="650"]'
+                    if len(children) > 0:
+                        for child in children:
+                            infoDict = {}
+                            first_timer = child.query_selector(
+                                "[title='first time visitor']"
                             )
-                            if modal_type:
-                                close_btn = modal_type.query_selector(
-                                    "[onclick*='clearall']"
-                                )
+                            unpaid_booking = child.query_selector(
+                                "[title='This booking is unpaid']"
+                            )
+                            if unpaid_booking:
+                                infoDict["unpaid_booking"] = "YES"
+                                print("Unpaid booking")
+                            if first_timer:
+                                infoDict["first_timer"] = "YES"
+                                print("first timer")
                             else:
-                                close_btn = page.wait_for_selector(
-                                    ".fancybox-close",
-                                    state="visible",
+                                infoDict["first_timer"] = "NO"
+                                print("not a first timer")
+                            child.click()
+                            print("Clicked booking child")
+
+                            try:
+                                modal_details = page.wait_for_selector(
+                                    ".fancybox-skin", state="visible"
                                 )
+                                modal_type = None
+                                if modal_details:
+                                    close_btn = None
+                                    modal_type = modal_details.query_selector(
+                                        'table[width="650"]'
+                                    )
+                                    if modal_type:
+                                        close_btn = modal_type.query_selector(
+                                            "[onclick*='clearall']"
+                                        )
+                                    else:
+                                        close_btn = page.wait_for_selector(
+                                            ".fancybox-close",
+                                            state="visible",
+                                        )
 
-                            # result = extract_data_from_html(
-                            #     modal_details.inner_html()
-                            # )
-                            infoDict["location"] = location_name
-                            # infoDict["booking_data"] = (
-                            #     result["content"]
-                            #     if "content" in result and result["content"]
-                            #     else result
-                            # )
-
-                            if not modal_type:
-                                print("entered workit")
-                                open_work_it = modal_details.query_selector(
-                                    "[onclick*='openWorkit']"
-                                )
-                                if open_work_it is not None:
-                                    open_work_it.click()
-
-                                    work_it = page.wait_for_selector(
-                                        "#workitinner",
-                                        state="visible",
-                                    )
-
-                                    print("opened workit")
-                                    work_it.query_selector("#wktab1").click()
-                                    contact = work_it.query_selector("#wk_contact")
-                                    print("Got to contact")
-                                    page.wait_for_function(
-                                        "element => element.isConnected && element.offsetParent !== null",
-                                        arg=contact,
-                                    )
-                                    page.wait_for_function(
-                                        "element => element.textContent.trim().length > 0",
-                                        arg=contact,
-                                    )
-                                    information_table = page.query_selector(
-                                        "#workitcontactcall"
-                                    )
-                                    close_btn = page.wait_for_selector(
-                                        ".fancybox-close",
-                                        state="visible",
-                                    )
-
-                                    page.wait_for_function(
-                                        "element => element.isConnected && element.offsetParent !== null",
-                                        arg=close_btn,
-                                    )
-                                    notes_tab = page.wait_for_selector(
-                                        "#calltab3",
-                                        state="visible",
-                                    )
-                                    page.wait_for_function(
-                                        "element => element.isConnected && element.offsetParent !== null",
-                                        arg=notes_tab,
-                                    )
-                                    notes_tab.click()
-                                    notes = information_table.query_selector(
-                                        "#callsubtab3"
-                                    )
-                                    print("got to notes")
-                                    page.wait_for_function(
-                                        "element => element.isConnected && element.offsetParent !== null",
-                                        arg=notes,
-                                    )
-                                    page.wait_for_function(
-                                        "element => element.textContent.trim().length > 0",
-                                        arg=notes,
-                                    )
-
-                                    logging.info(
-                                        f"here is the details for the notes {notes.inner_html()}"
-                                    )
-
-                                    # result = extract_notes_and_analyse(
-                                    #     notes.inner_html(), first_timer
+                                    # result = extract_data_from_html(
+                                    #     modal_details.inner_html()
                                     # )
-                                    # infoDict["notes_analysis"] = result
+                                    infoDict["location"] = location_name
+                                    # infoDict["booking_data"] = (
+                                    #     result["content"]
+                                    #     if "content" in result and result["content"]
+                                    #     else result
+                                    # )
 
-                            booking_data.append(infoDict)
-                            # logging.info(f'the result for {location_name}: {str(result)}')
+                                    if not modal_type:
+                                        print("entered workit")
+                                        open_work_it = modal_details.query_selector(
+                                            "[onclick*='openWorkit']"
+                                        )
+                                        if open_work_it is not None:
+                                            open_work_it.click()
 
-                            if close_btn:
+                                            work_it = page.wait_for_selector(
+                                                "#workitinner",
+                                                state="visible",
+                                            )
+
+                                            print("opened workit")
+                                            work_it.query_selector("#wktab1").click()
+                                            contact = work_it.query_selector(
+                                                "#wk_contact"
+                                            )
+                                            print("Got to contact")
+                                            page.wait_for_function(
+                                                "element => element.isConnected && element.offsetParent !== null",
+                                                arg=contact,
+                                            )
+                                            page.wait_for_function(
+                                                "element => element.textContent.trim().length > 0",
+                                                arg=contact,
+                                            )
+                                            information_table = page.query_selector(
+                                                "#workitcontactcall"
+                                            )
+                                            close_btn = page.wait_for_selector(
+                                                ".fancybox-close",
+                                                state="visible",
+                                            )
+
+                                            page.wait_for_function(
+                                                "element => element.isConnected && element.offsetParent !== null",
+                                                arg=close_btn,
+                                            )
+                                            notes_tab = page.wait_for_selector(
+                                                "#calltab3",
+                                                state="visible",
+                                            )
+                                            page.wait_for_function(
+                                                "element => element.isConnected && element.offsetParent !== null",
+                                                arg=notes_tab,
+                                            )
+                                            notes_tab.click()
+                                            notes = information_table.query_selector(
+                                                "#callsubtab3"
+                                            )
+                                            print("got to notes")
+                                            page.wait_for_function(
+                                                "element => element.isConnected && element.offsetParent !== null",
+                                                arg=notes,
+                                            )
+                                            page.wait_for_function(
+                                                "element => element.textContent.trim().length > 0",
+                                                arg=notes,
+                                            )
+
+                                            logging.info(
+                                                f"here is the details for the notes {notes.inner_html()}"
+                                            )
+
+                                            # result = extract_notes_and_analyse(
+                                            #     notes.inner_html(), first_timer
+                                            # )
+                                            # infoDict["notes_analysis"] = result
+
+                                    booking_data.append(infoDict)
+                                    # logging.info(f'the result for {location_name}: {str(result)}')
+
+                                    if close_btn:
+                                        close_btn.click()
+                                        page.wait_for_selector(
+                                            ".fancybox-skin",
+                                            state="hidden",
+                                        )
+                                    else:
+                                        print("Close button not found")
+                                else:
+                                    print("Modal not found")
+                            except PlaywrightTimeoutError as e:
+                                print(f"Timeout waiting for modal: {e}")
                                 close_btn.click()
                                 page.wait_for_selector(
                                     ".fancybox-skin",
                                     state="hidden",
                                 )
-                            else:
-                                print("Close button not found")
-                        else:
-                            print("Modal not found")
-                    except PlaywrightTimeoutError as e:
-                        print(f"Timeout waiting for modal: {e}")
-                        close_btn.click()
-                        page.wait_for_selector(
-                            ".fancybox-skin",
-                            state="hidden",
-                        )
-                        page.screenshot(path="debug_images/timeout_debug.png")
+                                page.screenshot(
+                                    path="debug_images_test/timeout_debug.png"
+                                )
 
                     # Take a screenshot for debugging
                     page.screenshot(
-                        path=f"debug_images/modal_debug_{location_name}.png"
+                        path=f"debug_images_test/modal_debug_{location_name}.png"
                     )
 
             close_modal = None
@@ -271,7 +293,9 @@ def process_location(location_name: str) -> list:
                     "element => element.isConnected && element.offsetParent !== null",
                     arg=booking_calender,
                 )
-                page.screenshot(path=f"debug_images/{location_name}_calendar_show.png")
+                page.screenshot(
+                    path=f"debug_images_test/{location_name}_calendar_show.png"
+                )
                 print("calendar refreshed")
                 page.select_option("select[id='EventType']", value="5")
                 print("selected option")
@@ -294,7 +318,7 @@ def process_location(location_name: str) -> list:
                 new_page.close()
 
                 page.screenshot(
-                    path=f"debug_images/{location_name}_booking_page_analysis.png"
+                    path=f"debug_images_test/{location_name}_booking_page_analysis.png"
                 )
 
                 print("completed booking page")
@@ -304,7 +328,7 @@ def process_location(location_name: str) -> list:
                     page.wait_for_selector("#userpilotContent", state="hidden")
 
             except Exception as e:
-                page.screenshot(path="debug_images/report_bug_view.png")
+                page.screenshot(path="debug_images_test/report_bug_view.png")
                 print(f"report error - {e}")
                 if close_modal:
                     close_modal.click()
@@ -323,6 +347,13 @@ def process_location(location_name: str) -> list:
 def get_page_scraping(authenticate=False, url=INITIAL_URL, max_workers=2):
 
     try:
+        checkpoint = load_json(CHECKPOINT_FILE)
+        today = str(date.today())
+        print(checkpoint.get("last_run_date") != today)
+        if checkpoint.get("last_run_date") != today:
+            print(f"New day detected ({today}), clearing checkpoint")
+            checkpoint = {"last_run_date": today, "completed": [], "results": {}}
+            save_json(CHECKPOINT_FILE, checkpoint)
         booking_data = []
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True)
@@ -340,7 +371,6 @@ def get_page_scraping(authenticate=False, url=INITIAL_URL, max_workers=2):
                 page.click("input[type='submit']")
                 page.wait_for_url(TARGET_URL)
                 print(f"Authenticated, new target URL: {page.url}")
-                redirect_url = page.url
 
                 # Get all store options
                 page.wait_for_selector("select[name='stores']")
