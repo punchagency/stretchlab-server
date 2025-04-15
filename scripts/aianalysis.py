@@ -63,7 +63,7 @@ def extract_data_from_html(html, location_name):
     for attempt in range(max_retries):
         try:
             response = client.chat.completions.create(
-                model="gpt-4o",
+                model="gpt-4o-mini",
                 messages=[
                     {
                         "role": "system",
@@ -137,7 +137,7 @@ def extract_unlogged_booking_from_html(html):
 
     try:
         response = client.chat.completions.create(
-            model="gpt-4o",
+            model="gpt-4o-mini",
             messages=[
                 {
                     "role": "system",
@@ -187,7 +187,7 @@ def extract_notes_and_analyse(html, first):
         prompt = """
                 Analyze the provided HTML, that contain notes, and extract the following in a concise manner:
 
-                - Progress Moments: Identify key moments of progress (e.g., decisions made, actions taken, positive updates) with their timestamps.
+                - Progress Moments: Identify key moments of progress (e.g., decisions made, actions taken, positive updates) with their timestamps. use key timestamp for timestamp and use key description for details
                 - Improvements: Suggest what could have been done better (e.g., missed opportunities, unclear communication).
                 - Summary: Provide an overall analysis of the conversation’s effectiveness and clarity.
                 - Score: Assign a score (0-100) based on the conversation’s effectiveness and clarity.
@@ -260,7 +260,7 @@ def extract_notes_and_analyse(html, first):
     for attempt in range(max_retries):
         try:
             response = client.chat.completions.create(
-                model="gpt-4o",
+                model="gpt-4o-mini",
                 messages=[
                     {
                         "role": "system",
