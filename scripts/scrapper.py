@@ -7,10 +7,10 @@ from aianalysis import (
     extract_notes_and_analyse,
     extract_unlogged_booking_from_html,
 )
-from util.helper import load_json, save_json
+from util.helper import load_json, save_json, process_notes, get_combined_html
 from datetime import datetime, date
 
-# from database import save_booking_data
+from database import save_booking_data, save_unlogged_booking_data
 import logging
 from playwright.sync_api import (
     sync_playwright,
@@ -37,6 +37,7 @@ os.makedirs("debug_images", exist_ok=True)
 # This is for caching data so the script does not repeat when something fails
 os.makedirs("cache", exist_ok=True)
 CACHE_FILE = "cache/ai_analysis_cache.json"
+FINAL_CACHE_FILE = "cache/final_result.json"
 REPORT_CACHE_FILE = "cache/ai_report_analysis_cache.json"
 CHECKPOINT_FILE = "cache/scraping_checkpoint.json"
 
@@ -134,15 +135,15 @@ def process_location(location_name: str) -> list:
                                                 state="visible",
                                             )
 
-                                        # result = extract_data_from_html(
-                                        #     modal_details.inner_html()
-                                        # )
+                                        result = extract_data_from_html(
+                                            modal_details.inner_html(), location_name
+                                        )
                                         infoDict["location"] = location_name
-                                        # infoDict["booking_data"] = (
-                                        #     result["content"]
-                                        #     if "content" in result and result["content"]
-                                        #     else result
-                                        # )
+                                        infoDict["booking_data"] = (
+                                            result["content"]
+                                            if "content" in result and result["content"]
+                                            else result
+                                        )
 
                                         if not modal_type:
                                             print("entered workit")
@@ -194,26 +195,43 @@ def process_location(location_name: str) -> list:
                                                     arg=notes_tab,
                                                 )
                                                 notes_tab.click()
-                                                notes = (
+                                                notes_info = (
                                                     information_table.query_selector(
                                                         "#callsubtab3"
                                                     )
                                                 )
                                                 page.wait_for_function(
                                                     "element => element.isConnected && element.offsetParent !== null",
-                                                    arg=notes,
+                                                    arg=notes_info,
                                                 )
 
                                                 page.wait_for_function(
                                                     "element => element.textContent.trim().length > 0",
-                                                    arg=notes,
+                                                    arg=notes_info,
                                                 )
-                                                print("got to notes")
+                                                print("got to notes information")
+                                                notes = None
+                                                result = None
+                                                if first_timer:
+                                                    notes = notes_info.query_selector(
+                                                        "#addNote + table"
+                                                    )
 
-                                                # result = extract_notes_and_analyse(
-                                                #     notes.inner_html(), first_timer
-                                                # )
-                                                # infoDict["notes_analysis"] = result
+                                                else:
+
+                                                    notes = process_notes(notes_info)
+
+                                                print("got notes")
+                                                result = (
+                                                    extract_notes_and_analyse(
+                                                        notes.inner_html(), first_timer
+                                                    )
+                                                    if first_timer
+                                                    else extract_notes_and_analyse(
+                                                        notes, first_timer
+                                                    )
+                                                )
+                                                infoDict["notes_analysis"] = result
 
                                         booking_data.append(infoDict)
                                         # logging.info(f'the result for {location_name}: {str(result)}')
@@ -368,9 +386,13 @@ def process_location(location_name: str) -> list:
 
                 print(result)
                 ai_cache = load_json(REPORT_CACHE_FILE)
-                ai_cache["last_run_date"] = today
-                ai_cache.setdefault("results", {}).update({location_name: result})
-                save_json(REPORT_CACHE_FILE, ai_cache)
+                if location_name in ai_cache.get("completed", []):
+                    print(f"Skipping {location_name} - already processed")
+                else:
+                    ai_cache["last_run_date"] = today
+                    ai_cache.setdefault("completed", []).append(location_name)
+                    ai_cache.setdefault("results", {}).update({location_name: result})
+                    save_json(REPORT_CACHE_FILE, ai_cache)
 
                 new_page.close()
 
@@ -517,26 +539,9 @@ def get_page_scraping(
         print("got here and now", final_completed)
 
         print(final_completed)
-
-        # for data in booking_data:
-        #     loc = data["location"]
-        #     final_results.setdefault(loc, []).append(data)
-        # completed_checkpoint = load_json(CHECKPOINT_FILE)
-        # completed = completed_checkpoint.get("completed", [])
-
-        # checkpoint["results"] = final_results
-        # checkpoint["last_run_date"] = today
-
-        # save_json(
-        #     CHECKPOINT_FILE,
-        #     {
-        #         "last_run_date": today,
-        #         "completed": completed_checkpoint.get("completed", []),
-        #         "results": final_results,
-        #     },
-        # )
-        # return list(final_results.values())
-        # return booking_data
+        print(booking_data)
+        save_json(FINAL_CACHE_FILE, booking_data)
+        return booking_data
 
     except Exception as e:
         print(f"Critical error in scraping: {e}")
@@ -548,8 +553,11 @@ def get_page_scraping(
 def get_autenticated_content():
     result = get_page_scraping(True)
     # print("booking result", result)
-    logging.info(f"the result for booking data: {str(result)}")
-    # save_booking_data(result)
+    # logging.info(f"the result for booking data: {str(result)}")
+    if result:
+        save_booking_data(result)
+        ai_cache = load_json(REPORT_CACHE_FILE)
+        save_unlogged_booking_data(ai_cache)
 
 
 get_autenticated_content()

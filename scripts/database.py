@@ -18,7 +18,7 @@ BOOKINGTABLEID = os.getenv("BOOKING_TABLE_ID")
 api = Api(ACCESS_TOKEN)
 
 
-# Initialize table, would correct to initialize diffrent tables
+# Initialize table, to check if connection works
 table = api.table(BASEID, TABLEID)
 
 booking_table = api.table(BASEID, BOOKINGTABLEID)
@@ -26,9 +26,8 @@ booking_table = api.table(BASEID, BOOKINGTABLEID)
 result = table.all()
 
 
-# Function for the saving of data
+# Function for the saving of data for booking data
 def save_booking_data(booking_data):
-    # scrap dtata entry blueprint
     for entry in booking_data:
         progressive_moments = "\n\n".join(
             f"{moment['timestamp']} - {moment['description']}"
@@ -51,11 +50,14 @@ def save_booking_data(booking_data):
             "Note Analysis(improvements)": improvements,
             "Note Summary": entry["notes_analysis"]["summary"],
             "Note Score": str(entry["notes_analysis"]["score"]),
-            "Engagement(rubric)": str(entry["notes_analysis"]["rubric"]["Engagement"]),
-            "Clarity(rubric)": str(entry["notes_analysis"]["rubric"]["Clarity"]),
-            "Progress(rubric)": str(entry["notes_analysis"]["rubric"]["Progress"]),
-            "Responsiveness(rubric)": str(
-                entry["notes_analysis"]["rubric"]["Responsiveness"]
+            "Pre-Visit Preparation(rubric)": str(
+                entry["notes_analysis"]["rubric"]["pre_visit"]
+            ),
+            "Session Notes(rubric)": str(
+                entry["notes_analysis"]["rubric"]["session_notes"]
+            ),
+            "Missed Sale Follow-Up(rubric)": str(
+                entry["notes_analysis"]["rubric"]["missed_sale"]
             ),
         }
         # Create a new record in Airtable
@@ -72,26 +74,36 @@ def save_booking_data(booking_data):
 
 
 def save_unlogged_booking_data(unlogged_booking):
-    # scrap dtata entry blueprint
-    for entry in unlogged_booking:
+    for location, value in unlogged_booking["results"].items():
+        print(f"Processing {location}: {value}")
 
-        fields = {
-            "Full Name": "",
-            "Booking Location": "",
-            "Booking ID": "",
-            "Booking Detail": "",
-            "Log Date": "",
-            "Session Mins": "",
-            "Booking With": "",
-            "Booking Date": "",
-        }
-        # Create a new record in Airtable
+        if isinstance(value, list):
+            print(f"  {location} has {len(value)} items in list")
+            for item in value:
+                fields = {
+                    "Full Name": f'{item["first_name"]} {item["last_name"]}',
+                    "Booking Location": item["booking_location"],
+                    "Booking ID": item["booking_id"],
+                    "Booking Detail": item["booking_detail"],
+                    "Log Date": item["log_date"],
+                    "Session Mins": item["session_mins"],
+                    "Booking With": item["booking_with"],
+                    "Booking Date": item["booking_date"],
+                }
+                # Create a new record in Airtable for booking data
 
-        try:
-            new_record = booking_table.create(fields)
-            print(f"Created record for {entry[""]}: {new_record['id']}")
-        except Exception as e:
-            print(f"Error creating record for {entry[""]}: {str(e)}")
+                try:
+                    new_record = booking_table.create(fields)
+                    print(
+                        f"Created record for {item["first_name"]}: {new_record['id']}"
+                    )
+                except Exception as e:
+                    print(f"Error creating record for {item["first_name"]}: {str(e)}")
+                pass
+        elif isinstance(value, str):
+            print(f"  {location} has status: {value}")
+        else:
+            print(f"  {location} has unexpected value type: {type(value)}")
 
 
 print("Finished adding rows to Unlogged booking table.")
