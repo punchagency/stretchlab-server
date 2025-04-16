@@ -26,7 +26,7 @@ table = api.table(BASEID, TABLEID)
 booking_table = api.table(BASEID, BOOKINGTABLEID)
 
 result = table.all()
-# FINAL_CACHE_FILE = "cache/final_result.json"
+FINAL_CACHE_FILE = "cache/final_result.json"
 
 
 # Function for the saving of data for booking data
@@ -36,7 +36,7 @@ def save_booking_data(booking_data):
         improvements = "N/A"
         if "notes_analysis" in entry:
             progressive_moments = "\n\n".join(
-                f"{moment['timestamp']} - {moment['description'] if 'description' in moment else moment['details']}"
+                f"{moment['timestamp']} - {moment[list(moment.keys())[1]] if len(moment) >= 2 else ''}"
                 for moment in entry["notes_analysis"]["progress_moments"]
             )
             improvements = "\n\n".join(
@@ -134,6 +134,6 @@ def save_unlogged_booking_data(unlogged_booking):
     print("Finished adding rows to Unlogged booking table.")
 
 
-# bookings = load_json(FINAL_CACHE_FILE)
+bookings = load_json(FINAL_CACHE_FILE)
 
-# save_booking_data(bookings)
+save_booking_data(bookings)
