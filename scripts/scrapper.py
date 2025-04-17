@@ -361,7 +361,7 @@ def process_location(location_name: str) -> list:
                 )
                 print("got to choosing today")
                 today_button = booking_calender.query_selector(
-                    "[onclick*='datepreset']"
+                    "[onclick*='datepreset(7)']"
                 )
                 today_button.click()
                 print("clicked today")
