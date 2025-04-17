@@ -1,4 +1,3 @@
-from scrapegraphai.graphs import SmartScraperGraph
 from dotenv import load_dotenv
 import os
 from logging_config import setup_logging
@@ -7,14 +6,18 @@ from aianalysis import (
     extract_notes_and_analyse,
     extract_unlogged_booking_from_html,
 )
-from util.helper import load_json, save_json, process_notes, get_combined_html
-from datetime import datetime, date
+from util.helper import (
+    load_json,
+    save_json,
+    process_notes,
+    remove_duplicates_by_key_keep_last_ordered,
+)
+from datetime import date
 
 from database import save_booking_data, save_unlogged_booking_data
 import logging
 from playwright.sync_api import (
     sync_playwright,
-    Playwright,
     TimeoutError as PlaywrightTimeoutError,
 )
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -76,11 +79,32 @@ def process_location(location_name: str) -> list:
             page.click("ul.dropdown li a:has-text('Bookings')")
             page.wait_for_load_state("networkidle", timeout=0)
 
+            # Find previous day button
+            previous_day = page.query_selector("[onclick*='goprevday']")
+            previous_day.click()
+
             # Find calendar table
             table_containing_calendar = page.query_selector(".gridContent>table")
             if not table_containing_calendar:
                 print(f"Calendar table not found for {location_name}, skipping...")
-                return booking_data
+                raise Exception("Calendar table not found")
+            initial_content = page.evaluate(
+                "element => element.innerHTML", table_containing_calendar
+            )
+
+            # Wait for the table to have updated content
+            page.wait_for_function(
+                """
+                (args) => {
+                    const element = args[0];
+                    const initialContent = args[1];
+                    const cells = element.querySelectorAll('td').length;
+                    return cells > 0 && element.innerHTML !== initialContent;
+                }
+                """,
+                arg=[table_containing_calendar, initial_content],
+                timeout=10000,
+            )
 
             flexologist_work_day = table_containing_calendar.query_selector_all(
                 ".cr-container-full"
@@ -335,12 +359,12 @@ def process_location(location_name: str) -> list:
                     "element => element.isConnected && element.offsetParent !== null",
                     arg=booking_calender,
                 )
-                print("got to choosing today")
+                print("got to choosing yesterday")
                 today_button = booking_calender.query_selector(
-                    "[onclick*='datepreset']"
+                    "[onclick*='datepreset(7)']"
                 )
                 today_button.click()
-                print("clicked today")
+                print("clicked yesterday")
 
                 page.wait_for_function(
                     """(element) => {
@@ -440,6 +464,8 @@ def get_page_scraping(location_name="StretchLab Bellaire"):
         checkpoint = load_json(CHECKPOINT_FILE)
         ai_cache = load_json(REPORT_CACHE_FILE)
         today = str(date.today())
+        print(today)
+        print(checkpoint.get("last_run_date"))
 
         if checkpoint.get("last_run_date") != today:
             print(f"New day detected ({today}), clearing checkpoint")
@@ -453,7 +479,7 @@ def get_page_scraping(location_name="StretchLab Bellaire"):
 
         booking_data = []
 
-        max_retries = 3
+        max_retries = 5
         retry_count = 0
         while retry_count < max_retries:
 
@@ -496,9 +522,13 @@ def get_autenticated_content():
     result = get_page_scraping()
     # print("booking result", result)
     # logging.info(f"the result for booking data: {str(result)}")
+    print(result)
     if result:
         print("completed")
-        # save_booking_data(result)
+        # unique_data = remove_duplicates_by_key_keep_last_ordered(
+        #     result, key="booking_id"
+        # )
+        # save_booking_data(unique_data)
         # ai_cache = load_json(REPORT_CACHE_FILE)
         # save_unlogged_booking_data(ai_cache)
 

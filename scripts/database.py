@@ -136,4 +136,4 @@ def save_unlogged_booking_data(unlogged_booking):
 
 bookings = load_json(FINAL_CACHE_FILE)
 
-save_booking_data(bookings)
+# save_booking_data(bookings)

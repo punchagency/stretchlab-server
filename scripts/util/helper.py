@@ -45,3 +45,28 @@ def process_notes(notes_info):
     except Exception as e:
         print(f"Error processing table: {e}")
         return ""
+
+
+def remove_duplicates_by_key_keep_last_ordered(lst, key):
+    if not lst or not key:
+        return []
+
+    seen = set()
+    result = []
+
+    for item in reversed(lst):
+        if not isinstance(item, dict) or "booking_data" not in item:
+            continue
+        try:
+            key_value = item["booking_data"].get(key)
+            if key_value is None:
+                continue
+            if key_value == "unavailable":
+                result.append(item)
+            elif key_value not in seen:
+                seen.add(key_value)
+                result.append(item)
+        except (KeyError, TypeError):
+            continue
+
+    return result[::-1]
